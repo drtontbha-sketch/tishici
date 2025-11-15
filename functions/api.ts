@@ -49,10 +49,10 @@ Respond ONLY with the generated prompt in English. Do not include any other text
   }
 };
 
-const callGeminiApi = async (apiKey: string, contents: any[]) => {
+const callGeminiApi = async (apiKey: string, contents: any) => {
   const ai = new GoogleGenAI({ apiKey });
   const response = await ai.models.generateContent({
-    model: 'gemini-flash-latest',
+    model: 'gemini-2.5-flash',
     contents: contents,
   });
 
@@ -78,22 +78,18 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
 
     if (type === 'analyzeImage') {
       const { base64Image, mimeType, language, length } = payload;
-      const contents = [{
+      const contents = {
         parts: [
           { inlineData: { mimeType: mimeType, data: base64Image } },
           { text: getPromptForImage(language, length) }
         ]
-      }];
+      };
       responseText = await callGeminiApi(env.API_KEY, contents);
 
     } else if (type === 'generateText') {
       const { inputText, language, length } = payload;
-       const contents = [{
-        parts: [
-          { text: getPromptForText(inputText, language, length) }
-        ]
-      }];
-      responseText = await callGeminiApi(env.API_KEY, contents);
+      const prompt = getPromptForText(inputText, language, length);
+      responseText = await callGeminiApi(env.API_KEY, prompt);
 
     } else {
       return new Response(JSON.stringify({ error: 'Invalid request type' }), {

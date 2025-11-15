@@ -4,10 +4,6 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {},
-  "dependencies": {
-    "@google/genai": "^1.29.1"
-  },
-  "devDependencies": {
-    "@cloudflare/workers-types": "^4.20240512.0"
-  }
+  "dependencies": {},
+  "devDependencies": {}
 }
