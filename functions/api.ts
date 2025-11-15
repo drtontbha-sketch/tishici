@@ -1,4 +1,3 @@
-import { GoogleGenAI } from "@google/genai";
 import type { PagesFunction } from '@cloudflare/workers-types';
 import { Language, PromptLength } from '../types';
 
@@ -49,10 +48,38 @@ Respond ONLY with the generated prompt in English. Do not include any other text
   }
 };
 
+const callGeminiApi = async (apiKey: string, contents: any[]) => {
+  const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+
+  const response = await fetch(API_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ contents }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    console.error("Gemini API Error:", errorData);
+    throw new Error(errorData.error?.message || 'Failed to call Gemini API');
+  }
+
+  const data = await response.json();
+  
+  // Extract text from the response
+  const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+  if (typeof text !== 'string') {
+      console.error("Unexpected API response structure:", data);
+      throw new Error("Could not parse text from Gemini API response.");
+  }
+  
+  return text;
+};
+
 
 // Cloudflare Pages function handler
 export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
-  // The API_KEY must be set as an environment variable in the Cloudflare Pages project settings.
   if (!env.API_KEY) {
     return new Response(JSON.stringify({ 
         error: 'Server configuration error', 
@@ -62,8 +89,6 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
       headers: { 'Content-Type': 'application/json' },
     });
   }
-  
-  const ai = new GoogleGenAI({ apiKey: env.API_KEY });
 
   try {
     const { type, payload } = await request.json();
@@ -71,22 +96,22 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
 
     if (type === 'analyzeImage') {
       const { base64Image, mimeType, language, length } = payload;
-      const imagePart = { inlineData: { mimeType, data: base64Image } };
-      const textPart = { text: getPromptForImage(language, length) };
-      const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
-        contents: { parts: [imagePart, textPart] },
-      });
-      responseText = response.text;
+      const contents = [{
+        parts: [
+          { inline_data: { mime_type: mimeType, data: base64Image } },
+          { text: getPromptForImage(language, length) }
+        ]
+      }];
+      responseText = await callGeminiApi(env.API_KEY, contents);
 
     } else if (type === 'generateText') {
       const { inputText, language, length } = payload;
-      const textPart = { text: getPromptForText(inputText, language, length) };
-      const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
-        contents: { parts: [textPart] },
-      });
-      responseText = response.text;
+       const contents = [{
+        parts: [
+          { text: getPromptForText(inputText, language, length) }
+        ]
+      }];
+      responseText = await callGeminiApi(env.API_KEY, contents);
 
     } else {
       return new Response(JSON.stringify({ error: 'Invalid request type' }), {
