@@ -1,0 +1,5 @@
+{
+  "name": "AI Prompt Generator from Image",
+  "description": "Upload an image and get a descriptive prompt for AI image generation. Choose your preferred language and prompt length, and let Gemini analyze the visual content to create the perfect text-to-image prompt.",
+  "requestFramePermissions": []
+}
