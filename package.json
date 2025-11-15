@@ -1,9 +1,0 @@
-{
-  "name": "ai-prompt-generator-cf",
-  "version": "1.0.0",
-  "private": true,
-  "description": "Dependencies for Cloudflare Pages Functions.",
-  "dependencies": {
-    "@google/genai": "^1.29.1"
-  }
-}
