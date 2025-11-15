@@ -1,11 +1,1 @@
-{
-  "name": "ai-prompt-generator-functions",
-  "private": true,
-  "type": "module",
-  "dependencies": {
-    "@google/genai": "^1.29.1"
-  },
-  "devDependencies": {
-    "@cloudflare/workers-types": "^4.20240512.0"
-  }
-}
+{}
