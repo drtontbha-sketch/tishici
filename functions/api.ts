@@ -47,9 +47,8 @@ Respond ONLY with the generated prompt in English. Do not include any other text
 
 // Cloudflare Pages function handler
 export const onRequestPost = async ({ request, env }) => {
-  // For Cloudflare Functions using the Node.js runtime, environment variables 
-  // are available on process.env. The API_KEY must be set in the project settings.
-  if (!process.env.API_KEY) {
+  // The API_KEY must be set as an environment variable in the Cloudflare Pages project settings.
+  if (!env.API_KEY) {
     return new Response(JSON.stringify({ 
         error: 'Server configuration error', 
         details: 'API_KEY not found.' 
@@ -59,7 +58,7 @@ export const onRequestPost = async ({ request, env }) => {
     });
   }
   
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const ai = new GoogleGenAI({ apiKey: env.API_KEY });
 
   try {
     const { type, payload } = await request.json();
