@@ -1,5 +1,5 @@
 import type { PagesFunction } from '@cloudflare/workers-types';
-import { Language, PromptLength } from '../types';
+import { Language, PromptLength } from './types';
 
 interface Env {
   API_KEY: string;
@@ -98,7 +98,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
       const { base64Image, mimeType, language, length } = payload;
       const contents = [{
         parts: [
-          { inline_data: { mime_type: mimeType, data: base64Image } },
+          { inlineData: { mimeType: mimeType, data: base64Image } },
           { text: getPromptForImage(language, length) }
         ]
       }];
