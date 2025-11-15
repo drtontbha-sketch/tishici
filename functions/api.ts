@@ -1,5 +1,10 @@
 import { GoogleGenAI } from "@google/genai";
+import type { PagesFunction } from '@cloudflare/workers-types';
 import { Language, PromptLength } from '../types';
+
+interface Env {
+  API_KEY: string;
+}
 
 const getLengthDescription = (language: Language, length: PromptLength) => {
   const lengthMap = {
@@ -46,7 +51,7 @@ Respond ONLY with the generated prompt in English. Do not include any other text
 
 
 // Cloudflare Pages function handler
-export const onRequestPost = async ({ request, env }) => {
+export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
   // The API_KEY must be set as an environment variable in the Cloudflare Pages project settings.
   if (!env.API_KEY) {
     return new Response(JSON.stringify({ 
