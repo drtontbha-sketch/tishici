@@ -1,3 +1,4 @@
+
 import type { PagesFunction } from '@cloudflare/workers-types';
 import { Language, PromptLength } from './types';
 
@@ -49,8 +50,8 @@ Respond ONLY with the generated prompt in English. Do not include any other text
 };
 
 const callGeminiApi = async (apiKey: string, contents: any[]) => {
-  // Using the stable v1 endpoint for better reliability.
-  const API_URL = `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+  // Use the 'gemini-flash-latest' model for the most up-to-date version.
+  const API_URL = `https://generativelanguage.googleapis.com/v1/models/gemini-flash-latest:generateContent?key=${apiKey}`;
 
   const response = await fetch(API_URL, {
     method: 'POST',
@@ -67,11 +68,26 @@ const callGeminiApi = async (apiKey: string, contents: any[]) => {
   }
 
   const data = await response.json();
-  
-  const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-  if (typeof text !== 'string') {
-      console.error("Unexpected API response structure:", data);
-      throw new Error("Could not parse text from Gemini API response.");
+
+  // Handle cases where the prompt was blocked or had no content.
+  if (!data.candidates || data.candidates.length === 0) {
+    const blockReason = data.promptFeedback?.blockReason;
+    if (blockReason) {
+      throw new Error(`Request was blocked by the API for reason: ${blockReason}.`);
+    }
+    console.error("Unexpected API response structure (no candidates):", data);
+    throw new Error("The API returned an empty or invalid response.");
+  }
+
+  // The .text convenience accessor logic from the SDK: join all text parts.
+  const text = data.candidates[0].content?.parts
+    ?.map((part: { text?: string }) => part.text)
+    ?.filter(Boolean)
+    ?.join('');
+
+  if (typeof text !== 'string' || !text) {
+    console.error("Unexpected API response structure (no text found):", data);
+    throw new Error("Could not parse text from Gemini API response.");
   }
   
   return text;
