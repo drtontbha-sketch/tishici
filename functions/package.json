@@ -1,4 +1,6 @@
 {
   "private": true,
-  "dependencies": {}
+  "dependencies": {
+    "@google/genai": "^1.29.1"
+  }
 }
