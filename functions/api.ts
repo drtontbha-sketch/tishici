@@ -49,7 +49,8 @@ Respond ONLY with the generated prompt in English. Do not include any other text
 };
 
 const callGeminiApi = async (apiKey: string, contents: any[]) => {
-  const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+  // Using the stable v1 endpoint for better reliability.
+  const API_URL = `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
 
   const response = await fetch(API_URL, {
     method: 'POST',
@@ -67,7 +68,6 @@ const callGeminiApi = async (apiKey: string, contents: any[]) => {
 
   const data = await response.json();
   
-  // Extract text from the response
   const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
   if (typeof text !== 'string') {
       console.error("Unexpected API response structure:", data);
